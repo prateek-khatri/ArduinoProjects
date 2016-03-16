@@ -25,6 +25,7 @@ int soil_moisture;
 int light_intensity;
 float pHValue;
 float ecValue;
+String requestStringThresholds[6];
 
 //THRESHOLDS
 int soil_moisture_min;
@@ -53,10 +54,9 @@ void showInitSerialMessage()
   Serial.println("");
 }
 
-String requestThresholds()
+void requestThresholds()
 {
   //communicate with ESP - > wait for timeout
-  String requestString = "";
   ESPserial.println("1"); // If ESP receives 1 then boot
   Serial.println("Waiting for Thresholds...");
   delay(10000);
@@ -65,10 +65,15 @@ String requestThresholds()
     Serial.println("Waiting 1 min for response...");
     delay(60000);//Boot time delay
   }
+  int i=0;
   while( ESPserial.available() )   
   {
       char a = ESPserial.read();
-      requestString = requestString+a;  
+      if(a==',')
+      {
+        i++;
+      }
+      requestStringThresholds[i] = requestStringThresholds[i]+a;  
       if(!ESPserial.available())
       {
         Serial.println();
@@ -76,10 +81,26 @@ String requestThresholds()
         ESPserial.flush();
       }
   }
-  return requestString;
+
 }
-void setNewThresholds(String req)
+void setNewThresholds(String req[])
 {
+  //Parse String here
+  /*
+   * 0 - ph min
+   * 1 - ph max
+   * 2 - ec min
+   * 3 - ec max
+   * 4 - soil moisture level
+   * 5 - light moisture level
+   */
+   pH_min = req[0].toFloat();
+   pH_max = req[1].toFloat();
+   ec_min = req[2].toFloat();
+   ec_max = req[3].toFloat();
+   soil_moisture_min = req[4].toInt();
+   light_intensity_min = req[5].toInt();
+  
   
   
 }
@@ -136,13 +157,19 @@ void setup()
    Serial.flush();
    showInitSerialMessage();
    //SEND THRESHOLD REQUESTS -: THIS FUNCTION WILL WAIT FOR A REPLY OR KEEP SENDING REQUEST
-   String req = "";
-   while(req.equals(""))
+   
+   int j;
+   for(j=0;j<6;j++)
    {
-    req = requestThresholds();
+    requestStringThresholds[j] = "";
+   }
+   
+   while(requestStringThresholds[0].equals(""))
+   {
+    requestThresholds();
    }
    //SET THE THRESHOLDS TO WORK WITH
-   setNewThresholds(req);
+   setNewThresholds(requestStringThresholds);
    //SET PIN MODES
    setPinModes();
     
