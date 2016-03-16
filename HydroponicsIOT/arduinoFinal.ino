@@ -58,7 +58,7 @@ void showInitSerialMessage()
   Serial.println("");
 }
 
-void requestThresholds()
+void requestThresholds() // at boot
 {
   //communicate with ESP - > wait for timeout
   ESPserial.println("1"); // If ESP receives 1 then boot
@@ -125,6 +125,13 @@ void setPinModes()
   digitalWrite(RELAY_LIGHT_SWITCH,LOW);
   
 }
+void readAllSensors()
+{
+  readLightIntensity();
+  readSoilMoisture();
+  readEC();
+  readPH();
+}
 
 bool matchDeltas()
 {
@@ -176,6 +183,7 @@ void waitForResponse() //RECEIVES THRESHOLDS
 
 void sendUpdate()
 {
+  readAllSensors();
   //Send sensor values to ESP
   //Wait for new thresholds from ESP
   //pH,ec,soil,light
@@ -194,6 +202,28 @@ void sendUpdate()
 void activateActuators()
 {
   
+}
+void readSoilMoisture()
+{
+  float a =(float) analogRead(SOIL_MOISTURE_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  soil_moisture = (int)a;
+}
+void readLightIntensity()
+{
+  float a =(float) analogRead(LIGHT_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  light_intensity = (int)a;
+}
+void readPH()
+{
+  
+}
+void readEC()
+{
+
 }
 
 int scanSoilMoisture()
@@ -243,6 +273,7 @@ void setup()
 }
 void loop() 
 {
+  delay(10000);
   if(matchDeltas() == true)
   {
     sendUpdate();
