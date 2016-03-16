@@ -88,7 +88,21 @@ void activateActuators()
 {
   
 }
- 
+
+int scanSoilMoisture()
+{
+  float a =(float) analogRead(SOIL_MOISTURE_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  return (int)a;
+}
+int scanLightIntensity()
+{
+  float a =(float) analogRead(LIGHT_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  return (int)a;
+}
 void setup() 
 {
    //INIT SERIAL PORTS
