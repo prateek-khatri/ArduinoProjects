@@ -1,150 +1,134 @@
-/*
-  Example code for the pH to I2C module v2.0
-  Works in Arduino IDE 1.6.7
-  http://www.cyber-plant.com
-  by CyberPlant LLC, 14 November 2015
-  This example code is in the public domain.
-  upd. 27.01.2016
-*/
+//********************
+//PIN DEFINITIONS
+//********************
+//RELAY PINS
+#define RELAY_PH_ACID_PUMP 4
+#define RELAY_PH_BASE_PUMP 5
+#define RELAY_EC_PUMP_ONE 6
+#define RELAY_EC_PUMP_TWO 7
+#define RELAY_WATER_PUMP 8
+#define RELAY_LIGHT_SWITCH 9
+
+//SENSOR PINS
+#define EC_SENSOR_PIN_ONE 2
+#define EC_SENSOR_PIN_TWO 3
+#define SOIL_MOISTURE_SENSOR_PIN A3
+#define LIGHT_SENSOR_PIN A2
+#define SERIAL_RX 13
+#define SERIAL_TX 12
+
+//********************
+//GLOBAL DEFINITIONS
+//********************
+//SENSOR VALUES
+int soil_moisture;
+int light_intensity;
+float pHValue;
+float ecValue;
+
+//THRESHOLDS
+int soil_moisture_min;
+int light_intensity_min;
+float pH_min;
+float pH_max;
+float ec_min;
+float ec_max;
+
+//DELTA VALUES (To be set manually depending on data frequency required)
+#define SOIL_MOISTURE_DELTA 5 //(PERCENT)
+#define LIGHT_INTENSITY_DELTA 5 //(PERCENT)
+#define PH_DELTA 0.25 //pH scale
+#define EC_DELTA 0.1 //ec scale
+
 
 #include "Wire.h"
-#include <EEPROM.h>
 #define pHtoI2C 0x48
-#define T 273.15                    // degrees Kelvin
+#define T 273.15     
+#include <SoftwareSerial.h>
+SoftwareSerial ESPserial(SERIAL_RX, SERIAL_TX); // RX | TX
 
-float data, voltage, pH, temp;
-int tempManual = 25;
-
-const unsigned long Interval = 250;  // 1/4 second
-long previousMillis = 0;
-unsigned long Time;
-
-int incomingByte = 0;
-
-float IsoP;
-float AlphaL;
-float AlphaH;
-
-void setup()
+void showInitSerialMessage()
 {
-  Wire.begin();
-  Serial.begin(9600);
-  Read_EE();
-
-  Serial.println("Calibrate commands:");
-  Serial.println("pH :");
-  Serial.println("      Cal. pH 4.00 ---- 4");
-  Serial.println("      Cal. pH 7.00 ---- 7");
-  Serial.println("      Cal. pH 10.00 --- 9");
-  Serial.println("      Reset pH ---------8");
-  Serial.println("  ");
-  temp = tempManual;
-  Time = millis();
+  Serial.println("Serial Ports Init, System Running");
+  Serial.println("");
 }
 
-struct MyObject {
-  float IsoP;
-  float AlphaL;
-  float AlphaH;
-};
-
-void Read_EE()
+String requestThresholds()
 {
-  int eeAddress = 0;
-  MyObject customVar;
-  EEPROM.get(eeAddress, customVar);
-  IsoP = (customVar.IsoP);
-  AlphaL = (customVar.AlphaL);
-  AlphaH = (customVar.AlphaH);
+  //communicate with ESP - > wait for timeout
+  return "";
+}
+void setNewThresholds(String req)
+{
+  
+}
+void setPinModes()
+{
+  pinMode(RELAY_PH_ACID_PUMP,OUTPUT);
+  pinMode(RELAY_PH_BASE_PUMP,OUTPUT);
+  pinMode(RELAY_EC_PUMP_ONE,OUTPUT);
+  pinMode(RELAY_EC_PUMP_TWO,OUTPUT);
+  pinMode(RELAY_WATER_PUMP,OUTPUT);
+  pinMode(RELAY_LIGHT_SWITCH,OUTPUT);
 }
 
-void SaveSet()
+bool matchDeltas()
 {
-  int eeAddress = 0;
-  MyObject customVar = {
-    IsoP,
-    AlphaL,
-    AlphaH
-  };
-  EEPROM.put(eeAddress, customVar);
+  return false;
 }
 
-void pH_read() // read ADS
+bool matchThresholds()
 {
-  byte highbyte, lowbyte, configRegister;
-  Wire.requestFrom(pHtoI2C, 3, sizeof(byte) * 3);
-  while (Wire.available()) // ensure all the data comes in
+  return false;
+}
+
+void sendUpdate()
+{
+  
+}
+
+void activateActuators()
+{
+  
+}
+
+int scanSoilMoisture()
+{
+  float a =(float) analogRead(SOIL_MOISTURE_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  return (int)a;
+}
+int scanLightIntensity()
+{
+  float a =(float) analogRead(LIGHT_SENSOR_PIN); 
+  a = a*100;
+  a = a/1023;
+  return (int)a;
+}
+void setup() 
+{
+   //INIT SERIAL PORTS
+   ESPserial.begin(115200);
+   Serial.begin(115200);
+   showInitSerialMessage();
+   //SEND THRESHOLD REQUESTS -: THIS FUNCTION WILL WAIT FOR A REPLY OR KEEP SENDING REQUEST
+   String req = requestThresholds();
+   //SET THE THRESHOLDS TO WORK WITH
+   setNewThresholds(req);
+   //SET PIN MODES
+   setPinModes();
+    
+}
+void loop() 
+{
+  if(matchDeltas() == true)
   {
-    highbyte = Wire.read(); // high byte * B11111111
-    lowbyte = Wire.read(); // low byte
-    configRegister = Wire.read();
+    sendUpdate();
   }
-  data = highbyte * 256;
-  data = data + lowbyte;
-  voltage = data * 2.048 ;
-  voltage = voltage / 32768; // mV
-
-  if (voltage > 0)
-    pH = IsoP - AlphaL * (T + temp) * voltage;
-  else if (voltage < 0)
-    pH = IsoP - AlphaH * (T + temp) * voltage;
-}
-
-void cal_sensors()
-{
-
-  switch (incomingByte)
+  if(matchThresholds() == true)
   {
-    case 56:
-      Serial.print("Reset pH ...");
-      IsoP = 7.00;
-      AlphaL = 0.08;
-      AlphaH = 0.08;
-      SaveSet();
-      Serial.println(" complete");
-      break;
-
-    case 52:
-      Serial.print("Cal. pH 4.00 ...");
-      AlphaL = (IsoP - 4) / voltage / (T + tempManual);
-      SaveSet();
-      Serial.println(" complete");
-      break;
-
-    case 55:
-      Serial.print("Cal. pH 7.00 ...");
-      IsoP = (IsoP - pH + 7.00);
-      SaveSet();
-      Serial.println(" complete");
-      break;
-
-    case 57:
-      Serial.print("Cal. pH 10.00 ...");
-      AlphaH = (IsoP - 10) / voltage / (T + tempManual);
-      SaveSet();
-      Serial.println(" complete");
-      break;
+    activateActuators();
   }
-}
-
-void showResults ()
-{
-  Serial.print("  pH ");
-  Serial.println(pH);
-}
-
-void loop()
-{
-  if (millis() - Time >= Interval)
-  {
-    Time = millis();
-    pH_read();
-    showResults();
-  }
-
-  if (Serial.available() > 0) //  function of calibration
-  {
-    incomingByte = Serial.read();
-    cal_sensors();
-  }
+  
 }
