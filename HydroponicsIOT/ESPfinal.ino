@@ -27,6 +27,9 @@ SoftwareSerial ESPserial(2, 3); // RX | TX
 
 void setup() {
 
+  Serial.begin(115200);
+  ESPserial.begin(115200);
+  Serial.println("Init Serial Ports done...");
 
 
 }
