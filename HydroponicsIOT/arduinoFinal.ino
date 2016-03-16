@@ -55,7 +55,7 @@ String requestThresholds()
   //communicate with ESP - > wait for timeout
   return "";
 }
-void setNewThresholds(req)
+void setNewThresholds(String req)
 {
   
 }
@@ -77,6 +77,16 @@ bool matchDeltas()
 bool matchThresholds()
 {
   return false;
+}
+
+void sendUpdate()
+{
+  
+}
+
+void activateActuators()
+{
+  
 }
  
 void setup() 
