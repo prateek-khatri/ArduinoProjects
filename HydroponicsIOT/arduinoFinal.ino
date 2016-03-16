@@ -27,6 +27,7 @@ float pHValue;
 float ecValue;
 String requestStringThresholds[6];
 
+
 //THRESHOLDS
 int soil_moisture_min;
 int light_intensity_min;
@@ -125,9 +126,6 @@ void setPinModes()
   
 }
 
-
-
-
 bool matchDeltas()
 {
   bool eCState = (abs(ecValue - scanEcValue()) > EC_DELTA);
@@ -146,9 +144,50 @@ bool matchThresholds()
 {
   return false;
 }
+void initRequestStringThresholds()
+{
+  int i =0;
+  for(i=0;i<6;i++)
+  {
+    requestStringThresholds[i] = "";
+  }
+}
+void waitForResponse() //RECEIVES THRESHOLDS
+{
+  Serial.println("Waiting for Response from ESP...");
+  while(!(ESPserial.available()>0));
+  initRequestStringThresholds();
+  int i=0;
+  while(ESPserial.available()>0)
+  {
+    char a = ESPserial.read();
+    if(a==',')
+    {
+      i++;
+    }
+    requestStringThresholds[i] +=a;
+  }
+  ESPserial.flush();
+  Serial.print("Response from 8266 Received: ");
+  Serial.println("Updating Thresholds...");
+  setNewThresholds(requestStringThresholds);
+  
+}
 
 void sendUpdate()
 {
+  //Send sensor values to ESP
+  //Wait for new thresholds from ESP
+  //pH,ec,soil,light
+
+  String sensorVals = "0,"+String(pHValue,2)+","+String(ecValue,2)+","+String(soil_moisture,DEC)+","+String(light_intensity,DEC);
+  Serial.print("Sending Values to 8266: ");
+  Serial.println(sensorVals);
+  ESPserial.flush();
+  ESPserial.print(sensorVals);
+
+  waitForResponse();
+
   
 }
 
@@ -190,12 +229,7 @@ void setup()
    Serial.flush();
    showInitSerialMessage();
    //SEND THRESHOLD REQUESTS -: THIS FUNCTION WILL WAIT FOR A REPLY OR KEEP SENDING REQUEST
-   
-   int j;
-   for(j=0;j<6;j++)
-   {
-    requestStringThresholds[j] = "";
-   }
+   initRequestStringThresholds();
    
    while(requestStringThresholds[0].equals(""))
    {
