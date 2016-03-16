@@ -41,6 +41,9 @@ float ec_max;
 #define EC_DELTA 0.1 //ec scale
 
 
+#include "Wire.h"
+#define pHtoI2C 0x48
+#define T 273.15     
 #include <SoftwareSerial.h>
 SoftwareSerial ESPserial(SERIAL_RX, SERIAL_TX); // RX | TX
 
