@@ -56,10 +56,31 @@ void showInitSerialMessage()
 String requestThresholds()
 {
   //communicate with ESP - > wait for timeout
-  return "";
+  String requestString = "";
+  ESPserial.println("1"); // If ESP receives 1 then boot
+  Serial.println("Waiting for Thresholds...");
+  delay(10000);
+  if(!ESPserial.available())
+  {
+    Serial.println("Waiting 1 min for response...");
+    delay(60000);//Boot time delay
+  }
+  while( ESPserial.available() )   
+  {
+      char a = ESPserial.read();
+      requestString = requestString+a;  
+      if(!ESPserial.available())
+      {
+        Serial.println();
+        Serial.flush();
+        ESPserial.flush();
+      }
+  }
+  return requestString;
 }
 void setNewThresholds(String req)
 {
+  
   
 }
 void setPinModes()
@@ -110,10 +131,16 @@ void setup()
 {
    //INIT SERIAL PORTS
    ESPserial.begin(115200);
-   Serial.begin(115200);
+   ESPserial.flush();
+   Serial.begin(9600);
+   Serial.flush();
    showInitSerialMessage();
    //SEND THRESHOLD REQUESTS -: THIS FUNCTION WILL WAIT FOR A REPLY OR KEEP SENDING REQUEST
-   String req = requestThresholds();
+   String req = "";
+   while(req.equals(""))
+   {
+    req = requestThresholds();
+   }
    //SET THE THRESHOLDS TO WORK WITH
    setNewThresholds(req);
    //SET PIN MODES
