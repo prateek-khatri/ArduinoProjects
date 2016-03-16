@@ -35,6 +35,9 @@ float pH_max;
 float ec_min;
 float ec_max;
 
+//ACTUATOR STATE
+bool actuatorState;
+
 //DELTA VALUES (To be set manually depending on data frequency required)
 #define SOIL_MOISTURE_DELTA 5 //(PERCENT)
 #define LIGHT_INTENSITY_DELTA 5 //(PERCENT)
@@ -106,17 +109,37 @@ void setNewThresholds(String req[])
 }
 void setPinModes()
 {
+  actuatorState = false;
   pinMode(RELAY_PH_ACID_PUMP,OUTPUT);
   pinMode(RELAY_PH_BASE_PUMP,OUTPUT);
   pinMode(RELAY_EC_PUMP_ONE,OUTPUT);
   pinMode(RELAY_EC_PUMP_TWO,OUTPUT);
   pinMode(RELAY_WATER_PUMP,OUTPUT);
   pinMode(RELAY_LIGHT_SWITCH,OUTPUT);
+  digitalWrite(RELAY_PH_ACID_PUMP,LOW);
+  digitalWrite(RELAY_PH_BASE_PUMP,LOW);
+  digitalWrite(RELAY_EC_PUMP_ONE,LOW);
+  digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+  digitalWrite(RELAY_WATER_PUMP,LOW);
+  digitalWrite(RELAY_LIGHT_SWITCH,LOW);
+  
 }
+
+
+
 
 bool matchDeltas()
 {
+  bool eCState = (abs(ecValue - scanEcValue()) > EC_DELTA);
+  bool pHState = (abs(pHValue - scanpHValue()) > PH_DELTA);
+  bool soilState = (abs(soil_moisture - scanSoilMoisture()) > SOIL_MOISTURE_DELTA);
+  bool lightState = (abs(light_intensity - scanLightIntensity()) > LIGHT_INTENSITY_DELTA);
+  if(eCState || pHState || soilState || lightState)
+  {
+    return true;
+  }
   return false;
+  
 }
 
 bool matchThresholds()
@@ -148,6 +171,16 @@ int scanLightIntensity()
   a = a/1023;
   return (int)a;
 }
+
+float scanpHValue()
+{
+  return 0.0;
+}
+float scanEcValue()
+{
+  return 0.0;
+}
+
 void setup() 
 {
    //INIT SERIAL PORTS
