@@ -60,6 +60,64 @@ void updatePayloadOnArduino()
   ESPserial.flush();
 }
 
+void sendValues(float ph, float ec, int soil, int light)
+{
+    bool flag = false;
+    Serial.println("Updating Values on Server...");
+    Serial.println("Waiting for WiFi connection...");
+    while(flag == false)
+    {
+      Serial.println("Trying to connect...");
+      if((WiFiMulti.run() == WL_CONNECTED)) 
+      {
+        Serial.println("WiFi Connection Established!");
+        HTTPClient http;
+        Serial.print("[HTTP] begin...\n");
+
+        //configure server request
+        http.begin("172.20.10.1", 8080,"?&fn=getSensorDetails&sensorId=esp001&ph="+String(ph,2)+"&tds="+String(ec,2)+"&light="+String(light)+"&moisture="+String(soil)+"&boot=false");
+        Serial.println("[HTTP] GET...");
+
+        //send HTTP header
+        int httpCode = http.GET();
+
+        //httpCode will be negative on error
+        if(httpCode >0)
+        {
+          Serial.print("[HTTP] GET... code ");Serial.println(httpCode);
+
+          if(httpCode == HTTP_CODE_OK)
+          {
+            payload = http.getString();
+            //payload.replace("\n","");
+            //payload.replace(" ","");
+            Serial.println("Received From Server:");
+            Serial.println(payload);
+                       
+            if(payload.equals(""))
+            {
+              flag=false;
+            }
+            else
+            {
+              flag = true;
+              break;
+            }
+          }
+        }
+        else
+        {
+          Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+        
+      }
+      delay(10000);
+    }
+    updatePayloadOnArduino();
+  
+}
+
 void sendInitToServer()
 {
     bool flag = false;
@@ -151,6 +209,128 @@ void setup()
    }
    updatePayloadOnArduino();
 }
+
+void deltaViolationUpdate(String payload)
+{
+  ESPserial.flush();
+  String sensorVals[4];
+  int i=0;
+  int val = 0;
+  for(i=0;i<payload.length();i++)
+  {
+    if(payload[i] == ',') val++;
+    sensorVals[val] += payload[i];
+  }
+  pHValue = sensorVals[0].toFloat();
+  ecValue = sensorVals[1].toFloat();
+  soil_moisture = sensorVals[2].toFloat();
+  light_intensity = sensorVals[3].toFloat();
+
+  sendValues(pHValue,ecValue,soil_moisture,light_intensity);
+  
+}
+
+void thresholdViolationUpdate(String payload)
+{
+  ESPserial.flush();
+  ESPserial.flush();
+  String sensorVals[4];
+  int i=0;
+  int val = 0;
+  for(i=0;i<payload.length();i++)
+  {
+    if(payload[i] == ',') val++;
+    sensorVals[val] += payload[i];
+  }
+  pHValue = sensorVals[0].toFloat();
+  ecValue = sensorVals[1].toFloat();
+  soil_moisture = sensorVals[2].toFloat();
+  light_intensity = sensorVals[3].toFloat();
+
+  sendValues(pHValue,ecValue,soil_moisture,light_intensity);
+  
+}
+
+void sendActuatorUpdate(bool ph, bool ec, bool light, bool water)
+{
+   bool flag = false;
+    Serial.println("Updating Actuator Status on Server...");
+    Serial.println("Waiting for WiFi connection...");
+    while(flag == false)
+    {
+      Serial.println("Trying to connect...");
+      if((WiFiMulti.run() == WL_CONNECTED)) 
+      {
+        Serial.println("WiFi Connection Established!");
+        HTTPClient http;
+        Serial.print("[HTTP] begin...\n");
+
+        //configure server request
+        http.begin("172.20.10.1", 8080,"?&fn=updateActuatorData&sensorId=esp001&ph="+String(ph)+"&tds="+String(ec)+"&light="+String(light)+"&moisture="+String(water)+"&boot=false");
+        Serial.println("[HTTP] GET...");
+
+        //send HTTP header
+        int httpCode = http.GET();
+
+        //httpCode will be negative on error
+        if(httpCode >0)
+        {
+          Serial.print("[HTTP] GET... code ");Serial.println(httpCode);
+
+          if(httpCode == HTTP_CODE_OK)
+          {
+            payload = http.getString();
+            //payload.replace("\n","");
+            //payload.replace(" ","");
+            Serial.println("Received From Server:");
+            Serial.println(payload);
+                       
+            if(payload.equals(""))
+            {
+              flag=false;
+            }
+            else
+            {
+              flag = true;
+              break;
+            }
+          }
+        }
+        else
+        {
+          Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+        
+      }
+      delay(10000);
+    }
+    updatePayloadOnArduino();
+  
+}
+
+void actuatorStatusUpdate(String payload)
+{
+  ESPserial.flush();
+  ESPserial.flush();
+  String sensorVals[4];
+  int i=0;
+  int val = 0;
+  for(i=0;i<payload.length();i++)
+  {
+    if(payload[i] == ',') val++;
+    sensorVals[val] += payload[i];
+  }
+  //0 false
+  // 1 true
+  phActuator = sensorVals[0].toInt();
+  ecActuator = sensorVals[1].toInt();
+  lightActuator = sensorVals[2].toInt();
+  waterActuator = sensorVals[3].toInt();
+
+  sendActuatorUpdate(phActuator,ecActuator,lightActuator,waterActuator);
+  
+}
 /*
  * Code 0: Normal Delta Update
  * Code 2: Threshold Violation, need to follow with actuator status
@@ -164,12 +344,13 @@ void waitForSensorUpdates()
     delay(1000);
   }
   String response = "";
+  char a;
   while(ESPserial.available() >0)
   {
-    ESPserial.read();
+    a = ESPserial.read();
     if(a == '0' || a == '2' || a=='9')
     {
-      ESPserial.read();
+      ESPserial.read(); //remove comma
       break;
     }
   }
@@ -191,8 +372,6 @@ void waitForSensorUpdates()
   {
     actuatorStatusUpdate(payload);
   }
-
-  
 }
 
 void loop() 
