@@ -7,6 +7,7 @@ ESP8266WiFiMulti WiFiMulti;
 //GLOBAL DEFINITIONS
 #define SERIAL_RX 2
 #define SERIAL_TX 3
+// WiFi Connection
 
 //SENSOR VALUES
 int soil_moisture;
@@ -36,11 +37,12 @@ SoftwareSerial ESPserial(SERIAL_RX, SERIAL_TX); // RX | TX
 
 void sendInitToServer()
 {
-  bool flag = false;
+    bool flag = false;
     Serial.println("Fethching Thresholds from server");
     Serial.println("Waiting for WiFi connection...");
     while(flag == false)
     {
+      Serial.println("Trying to connect...");
       if((WiFiMulti.run() == WL_CONNECTED)) 
       {
         Serial.println("WiFi Connection Established!");
@@ -48,7 +50,7 @@ void sendInitToServer()
         Serial.print("[HTTP] begin...\n");
 
         //configure server request
-        http.begin("172.20.10.1", 8080,"?&fn=getSensorDetails&sensorId=esp001&ph=0&tds=0&light=0&moisture=0&boot=true");
+        http.begin("172.20.10.1", 8080,"?&fn=getSensorDetails&sensorId=esp001&ph=7.2&tds=50&light=15.3&moisture=15.99&boot=false");
         Serial.println("[HTTP] GET...");
 
         //send HTTP header
@@ -64,7 +66,12 @@ void sendInitToServer()
             payload = http.getString();
             Serial.println("Received From Server:");
             Serial.println(payload);
+            
             flag = true;
+            if(payload.equals(""))
+            {
+              flag=false;
+            }
           }
         }
         else
@@ -105,6 +112,7 @@ void setup()
     char a = ESPserial.read();
     if(a=='1')
     {
+      Serial.printf("Received Code: %c\n",a);
       sendInitToServer();
       break;
     }
