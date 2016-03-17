@@ -325,8 +325,8 @@ void actuatorStatusUpdate(String payload)
   // 1 true
   phActuator = sensorVals[0].toInt();
   ecActuator = sensorVals[1].toInt();
-  lightActuator = sensorVals[2].toInt();
-  waterActuator = sensorVals[3].toInt();
+  waterActuator = sensorVals[2].toInt();
+  lightActuator = sensorVals[3].toInt();
 
   sendActuatorUpdate(phActuator,ecActuator,lightActuator,waterActuator);
   
