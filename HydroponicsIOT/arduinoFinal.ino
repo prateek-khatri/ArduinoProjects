@@ -206,13 +206,114 @@ void sendUpdate(int code)
   ESPserial.print(sensorVals);
 
   waitForResponse();
+}
 
+void sendActuatorUpdate()
+{
+  int ph,ec,soil,light;
+  if(phActuator == true) ph = 1;
+  else ph = 0;
+  if(ecActuator == true) ec = 1;
+  else ec = 0;
+  if(waterActuator == true) soil = 1;
+  else soil = 0;
+  if(lightActuator == true) light = 1;
+  else light = 0; 
+  String acVals = "9,"+String(ph)+","+String(ec)+","+String(soil)+","+String(light);
+  Serial.println("Sending Actuator Values to ESP8266:");
+  Serial.println(acVals);
+  ESPserial.flush();
+  ESPserial.print(acVals);
+  
+}
+
+boolean checkPHLevels()
+{
+  if(pHValue < pH_min)
+  {
+    digitalWrite(RELAY_PH_BASE_PUMP,HIGH);
+    digitalWrite(RELAY_PH_ACID_PUMP,LOW);
+    phActuator = true;
+  }
+  else if(pHValue > pH_max)
+  {
+    digitalWrite(RELAY_PH_ACID_PUMP,HIGH);
+    digitalWrite(RELAY_PH_BASE_PUMP,LOW);
+    phActuator = true;
+  }
+  else
+  {
+    digitalWrite(RELAY_PH_ACID_PUMP,LOW);
+    digitalWrite(RELAY_PH_BASE_PUMP,LOW);
+    phActuator = false;
+  }
+  return phActuator;
+  
+}
+
+boolean checkECLevels()
+{
+  if(ecValue < ec_min)
+  {
+    digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
+    digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+    ecActuator = true;
+  }
+  else if(ecValue > ec_max)
+  {
+    digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
+    digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+    ecActuator = true;
+  }
+  else
+  {
+    digitalWrite(RELAY_EC_PUMP_ONE,LOW);
+    digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+    ecActuator = false;
+  }
+  return ecActuator;
+}
+
+boolean checkMoistureLevels()
+{
+  if(soil_moisture < soil_moisture_min)
+  {
+    digitalWrite(RELAY_WATER_PUMP,HIGH);
+    waterActuator = true;
+  }
+  else
+  {
+    digitalWrite(RELAY_WATER_PUMP,LOW);
+    waterActuator = false;
+  }
+  return waterActuator;
+  
+}
+
+boolean checkLightLevels()
+{
+  if(light_intensity < light_intensity_min)
+  {
+    digitalWrite(RELAY_LIGHT_SWITCH,HIGH);
+    lightActuator = true;
+  }
+  else
+  {
+    digitalWrite(RELAY_LIGHT_SWITCH,LOW);
+    lightActuator = false;
+  }
+  return lightActuator;
   
 }
 
 void activateActuators()
 {
+  boolean prevVals[] = {phActuator,ecActuator,waterActuator,lightActuator};
   //add code 9 sendUpdate(9) and attach actuator status;
+  if((prevVals[0] != checkPHLevels()) || (prevVals[1] != checkECLevels()) || (prevVals[2] != checkMoistureLevels()) || (prevVals[3] != checkLightLevels()))
+  {
+    sendActuatorUpdate();
+  }
   
 }
 void readSoilMoisture()
@@ -284,6 +385,7 @@ void setup()
 }
 void loop() 
 {
+  activateActuators();
   delay(10000);
   if(matchDeltas() == true)
   {
