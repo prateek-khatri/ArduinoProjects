@@ -113,7 +113,10 @@ void setNewThresholds(String req[])
 }
 void setPinModes()
 {
-  actuatorState = false;
+  phActuator = false;
+  ecActuator = false;
+  lightActuator = false;
+  waterActuator = false; 
   pinMode(RELAY_PH_ACID_PUMP,OUTPUT);
   pinMode(RELAY_PH_BASE_PUMP,OUTPUT);
   pinMode(RELAY_EC_PUMP_ONE,OUTPUT);
