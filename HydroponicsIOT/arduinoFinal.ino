@@ -1,3 +1,4 @@
+#include<Arduino.h>
 //********************
 //PIN DEFINITIONS
 //********************
@@ -286,12 +287,16 @@ void loop()
   delay(10000);
   if(matchDeltas() == true)
   {
-    sendUpdate(0);
+    if(matchThresholds() == true)
+    {
+      sendUpdate(2);
+      activateActuators();
+    }
+    else
+    {
+      sendUpdate(0);
+    }
   }
-  if(matchThresholds() == true)
-  {
-    sendUpdate(2);
-    activateActuators();
-  }
+
   
 }
