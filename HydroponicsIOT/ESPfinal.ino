@@ -93,7 +93,13 @@ void setup()
     
    WiFiMulti.addAP("iPhone 6","parthconnect");
    Serial.println("Waiting for Controller Init...");
-   while(!(ESPserial.available() > 0));
+   ESPserial.flush();
+   while(!(ESPserial.available() > 0))
+   {
+    delay(1000);
+    Serial.print(".");
+   }
+   Serial.println();
    while(ESPserial.available() > 0)
    {
     char a = ESPserial.read();
@@ -102,6 +108,7 @@ void setup()
       sendInitToServer();
       break;
     }
+    delay(500);
    }
 }
 
