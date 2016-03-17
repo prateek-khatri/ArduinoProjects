@@ -186,16 +186,20 @@ void waitForResponse() //RECEIVES THRESHOLDS
   setNewThresholds(requestStringThresholds);
   
 }
-
-void sendUpdate()
+/*
+ * Code 0: Normal Delta Update
+ * Code 2: Threshold Violation, need to follow with actuator status
+ * Code 9: Actuator status string
+ */
+void sendUpdate(int code)
 {
   readAllSensors();
   //Send sensor values to ESP
   //Wait for new thresholds from ESP
   //pH,ec,soil,light
 
-  String sensorVals = "0,"+String(pHValue,2)+","+String(ecValue,2)+","+String(soil_moisture,DEC)+","+String(light_intensity,DEC);
-  Serial.print("Sending Values to 8266: ");
+  String sensorVals = String(code)+","+String(pHValue,2)+","+String(ecValue,2)+","+String(soil_moisture,DEC)+","+String(light_intensity,DEC);
+  Serial.print("Sending Values to ESP8266: ");
   Serial.println(sensorVals);
   ESPserial.flush();
   ESPserial.print(sensorVals);
@@ -207,6 +211,7 @@ void sendUpdate()
 
 void activateActuators()
 {
+  //add code 9 sendUpdate(9) and attach actuator status;
   
 }
 void readSoilMoisture()
@@ -281,10 +286,11 @@ void loop()
   delay(10000);
   if(matchDeltas() == true)
   {
-    sendUpdate();
+    sendUpdate(0);
   }
   if(matchThresholds() == true)
   {
+    sendUpdate(2);
     activateActuators();
   }
   
