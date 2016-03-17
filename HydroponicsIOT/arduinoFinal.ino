@@ -37,7 +37,10 @@ float ec_min;
 float ec_max;
 
 //ACTUATOR STATE
-bool actuatorState;
+bool phActuator;
+bool ecActuator;
+bool lightActuator;
+bool waterActuator;
 
 //DELTA VALUES (To be set manually depending on data frequency required)
 #define SOIL_MOISTURE_DELTA 5 //(PERCENT)
@@ -260,7 +263,6 @@ void setup()
    showInitSerialMessage();
    //SEND THRESHOLD REQUESTS -: THIS FUNCTION WILL WAIT FOR A REPLY OR KEEP SENDING REQUEST
    initRequestStringThresholds();
-   
    while(requestStringThresholds[0].equals(""))
    {
     requestThresholds();
