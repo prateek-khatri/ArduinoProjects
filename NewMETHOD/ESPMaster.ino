@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
+
 ESP8266WiFiMulti WiFiMulti;
 
 //GLOBAL DEFINITIONS
@@ -167,10 +168,24 @@ void printSensorValues()
 }
 void parseSensorValues(String vals)
 {
-  pHValue = getValue(vals,",",0).toFloat();
-  ecValue = getValue(vals,",",1).toFloat();
-  soil_moisture = getValue(vals,",",2).toInt();
-  light_intensity = getValue(vals,",",3).toInt();
+  String inputVals[4];
+  for(int j=0;j<4;j++) inputVals[j] ="";
+  int i=0;
+  int index = 0;
+  for(i=0;i<vals.length();i++)
+  {
+    if(vals[i] == ',')
+    {
+      index++;
+      i++;
+    }
+    inputVals[index] += vals[i];
+  }
+  
+  pHValue = inputVals[0].toFloat();
+  ecValue = inputVals[1].toFloat();
+  soil_moisture = inputVals[2].toInt();
+  light_intensity = inputVals[3].toInt();
   printSensorValues();
 }
 void readSensorValues()
