@@ -19,6 +19,16 @@ float pHValue;
 float ecValue;
 String payload; //send this string to ESP ezpz
 
+//PH STUFF
+#include "Wire.h"
+#define pHtoI2C 0x48
+#define T 273.15     
+float data, voltage;
+float IsoP = 7.00;
+float AlphaL;
+float AlphaH;
+float temp = 25;
+
 SoftwareSerial ESPSerial(SERIAL_RX,SERIAL_TX);
 
 void initValues()
@@ -43,7 +53,23 @@ void scanEC()
 }
 void scanPH()
 {
-  pHValue = 7.56;
+  byte highbyte,lowbyte,configRegister;
+  Wire.requestFrom(pHtoI2C,3,sizeof(byte)*3);
+  while(Wire.available())
+  {
+    highbyte = Wire.read();
+    lowbyte = Wire.read();
+    configRegister = Wire.read();
+  }
+  data = highbyte *256;
+  data += lowbyte;
+  voltage = data*2.048;
+  voltage = voltage/32768;
+  pHValue = 7.0;
+  float constFactor;
+  constFactor = voltage - (0.5);
+  constFactor *=8;
+  pHValue -=constFactor;
   delay(1000);
 }
 void scanLight()
@@ -77,9 +103,8 @@ void setup()
   // put your setup code here, to run once:
   Serial.begin(9600);
   ESPSerial.begin(115200);
+  Wire.begin();
   Serial.println("System Init - Polling Module");
-  Serial.println("Sending Init Code: 1 to ESP");
-  ESPSerial.print("1");
 
   initValues();
   initPins();
