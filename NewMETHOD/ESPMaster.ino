@@ -156,6 +156,53 @@ void requestInitThresholds()
   
 }
 //**********************BOOT TIME REQUEST THRESHOLDS END**************************
+
+//**********************SENSOR READING ACQUISITION********************************
+void printSensorValues()
+{
+  Serial.print("pH Value: ");Serial.println(pHValue);
+  Serial.print("ec Value: ");Serial.println(ecValue);
+  Serial.print("Moisture Value: ");Serial.println(soil_moisture);
+  Serial.print("Light Value: ");Serial.println(light_intensity);
+}
+void parseSensorValues(String vals)
+{
+  pHValue = getValue(vals,",",0).toFloat();
+  ecValue = getValue(vals,",",1).toFloat();
+  soil_moisture = getValue(vals,",",2).toInt();
+  light_intensity = getValue(vals,",",3).toInt();
+  printSensorValues();
+}
+void readSensorValues()
+{
+  ESPSerial.flush();
+  Serial.println("Waiting for Values from Arduino...");
+  while(!(ESPSerial.available() >0))
+  {
+    delay(1000);
+    Serial.print(".");
+  }
+  char a;
+  String sensorRead = "";
+  while(ESPSerial.available() > 0)
+  {
+    a = ESPSerial.read();
+    if(a == '#')
+    {
+      ESPSerial.read(); //read comma
+      break;
+    }
+  }
+  while(ESPSerial.available() > 0)
+  {
+    a = ESPSerial.read();
+    sensorRead +=a;
+  }
+  Serial.println();
+  Serial.println("Values Received -> ");
+  parseSensorValues(sensorRead);
+}
+//**********************SENSOR READING END********************************
 void setup() 
 {
   initPeripherals();
@@ -164,6 +211,6 @@ void setup()
 
 void loop() 
 {
-  
+ readSensorValues(); 
 
 }
