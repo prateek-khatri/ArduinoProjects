@@ -157,8 +157,9 @@ boolean requestInitThresholds()
        }
       
        http.end();
-       delay(2000); 
+       
      }
+     delay(2000); 
     }
    flag = updateThresholds();
    return flag;
