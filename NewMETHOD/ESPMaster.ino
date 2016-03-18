@@ -92,7 +92,7 @@ void initPeripherals()
 //**********************BOOT TIME REQUEST THRESHOLDS**************************
 boolean updateThresholds() //THIS FUNCTION CAN BE CALLED WHEN PAYLOAD STRING HAS JSON OBJECT WITH THRESHOLDS
 {
-
+  Serial.println("Verifying Threshold Data...");
   StaticJsonBuffer<200> jsonBuffer;
   char payloadArray[200]; 
   payload.toCharArray(payloadArray,200);
@@ -102,6 +102,7 @@ boolean updateThresholds() //THIS FUNCTION CAN BE CALLED WHEN PAYLOAD STRING HAS
   {
     Serial.println("Invalid Thresholds...wait for Server...");
     delay(2000);
+    return false;
   }
   soil_moisture_min = root["moistureLowerThresholds"];
   light_intensity_min = root["lightLowerThresholds"];
@@ -118,7 +119,7 @@ boolean requestInitThresholds()
 {
     bool flag = false;
    
-    Serial.println("Fethching Thresholds from server");
+    Serial.println("System Boot...requestiong Server Data...");
     Serial.println("Waiting for WiFi connection...");
     while(flag == false)
     {
@@ -338,12 +339,14 @@ void activate_ph_pumps()
   if(pHValue < pH_min)
   {
     //activate base
+    Serial.println("Starting Base Pump for PH!");
     digitalWrite(RELAY_PH_BASE_PUMP,HIGH);
     digitalWrite(RELAY_PH_ACID_PUMP,LOW);
   }
   else if(pHValue > pH_max)
   {
     //activate acid
+    Serial.println("Starting Acid Pump for PH!");
     digitalWrite(RELAY_PH_BASE_PUMP,LOW);
     digitalWrite(RELAY_PH_ACID_PUMP,HIGH);
   }
@@ -351,6 +354,7 @@ void activate_ph_pumps()
 }
 void deactivate_ph_pumps()
 {
+  Serial.println("Deactivate PH Pumps!");
   digitalWrite(RELAY_PH_BASE_PUMP,LOW);
   digitalWrite(RELAY_PH_ACID_PUMP,LOW);
   phActuator = false;
@@ -361,12 +365,14 @@ void activate_ec_pumps()
   if(ecValue < ec_min)
   {
     //activate base
+    Serial.println("Starting Nutrient Pump for EC!");
     digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
     digitalWrite(RELAY_EC_PUMP_TWO,LOW);
   }
   else if(ecValue > ec_max)
   {
     //activate acid
+    Serial.println("Starting Water Pump for EC!");
     digitalWrite(RELAY_EC_PUMP_ONE,LOW);
     digitalWrite(RELAY_EC_PUMP_TWO,HIGH);
   }
@@ -374,6 +380,7 @@ void activate_ec_pumps()
 }
 void deactivate_ec_pumps()
 {
+    Serial.println("Deactivate EC Pumps!");
     digitalWrite(RELAY_EC_PUMP_ONE,LOW);
     digitalWrite(RELAY_EC_PUMP_TWO,HIGH);
     ecActuator = false;
@@ -381,22 +388,26 @@ void deactivate_ec_pumps()
 
 void activate_light_switch()
 {
+  Serial.println("Turning Light On!");
   digitalWrite(RELAY_LIGHT_SWITCH,HIGH);
   lightActuator = true;
 }
 void deactivate_light_switch()
 {
+  Serial.println("Turning Light Off!");
   digitalWrite(RELAY_LIGHT_SWITCH,LOW);
   lightActuator = false;
 }
 
 void activate_water_pump()
 {
+  Serial.println("Turning Water Pump On!");
   digitalWrite(RELAY_WATER_PUMP,HIGH);
   waterActuator = true;
 }
 void deactivate_water_pump()
 {
+  Serial.println("Turning Water Pump off!");
   digitalWrite(RELAY_WATER_PUMP,LOW);
   waterActuator = false;
 }
@@ -405,6 +416,7 @@ void deactivate_water_pump()
 //**********************MATCHING THRESHOLDS/DELTAS************************
 void matchDeltas()
 {
+  Serial.println("Sending Delta Update...");
   float prev_ph = pHValue;
   float prev_ec = ecValue;
   int prev_light = light_intensity;
@@ -423,6 +435,7 @@ void matchDeltas()
 void matchThresholds(bool ph,bool ec,bool light,bool moisture)
 {
   //Send Updates Acquires Sensor Values, Sends to server and updates thresholds
+  Serial.println("Threshold Violated!");
   while(!sendUpdate())
   {
     delay(500);
@@ -486,6 +499,7 @@ void matchThresholds(bool ph,bool ec,bool light,bool moisture)
 }
 void matchValues()
 {
+  Serial.println("Checking for Threshold Violations...");
   bool pHViolation = false;
   bool ecViolation = false;
   bool lightViolation = false;
@@ -559,5 +573,5 @@ void loop()
    * 2. send update
    * 3. update thresholds
    */
-  matchValues();
+   matchValues();
 }
