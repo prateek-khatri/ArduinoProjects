@@ -8,14 +8,14 @@ ESP8266WiFiMulti WiFiMulti;
 
 //GLOBAL DEFINITIONS
 #define SERIAL_RX 2
-#define SERIAL_TX 3
+#define SERIAL_TX 6
 //RELAY PINS
-#define RELAY_PH_ACID_PUMP 4
-#define RELAY_PH_BASE_PUMP 5
-#define RELAY_EC_PUMP_ONE 6
-#define RELAY_EC_PUMP_TWO 7
-#define RELAY_WATER_PUMP 8
-#define RELAY_LIGHT_SWITCH 9
+#define RELAY_PH_ACID_PUMP 0
+#define RELAY_PH_BASE_PUMP 2
+#define RELAY_EC_PUMP_ONE 4
+#define RELAY_EC_PUMP_TWO 12
+#define RELAY_WATER_PUMP 13
+#define RELAY_LIGHT_SWITCH 15
 
 //SENSOR VALUES
 int soil_moisture;
@@ -79,6 +79,7 @@ void initPeripherals()
   initValues();
   Serial.println("Initializing Pins for Relay");
   initPins();
+  Serial.println("Values/PINS Initialized!");
 }
 
 //**********************INIT FUNCTIONS END************************************
@@ -190,7 +191,7 @@ void parseSensorValues(String vals)
 }
 void readSensorValues()
 {
-  ESPSerial.flush();
+  //ESPSerial.flush();
   Serial.println("Waiting for Values from Arduino...");
   while(!(ESPSerial.available() >0))
   {
@@ -221,11 +222,12 @@ void readSensorValues()
 void setup() 
 {
   initPeripherals();
-  requestInitThresholds();
+  //requestInitThresholds();
+   
+  
 }
 
 void loop() 
 {
- readSensorValues(); 
-
+  readSensorValues(); 
 }
