@@ -42,7 +42,7 @@ String payload;
 
 #include <SoftwareSerial.h>
 SoftwareSerial ESPSerial(SERIAL_RX, SERIAL_TX); // RX | TX
-//**********************INIT FUNCTIONS**************************
+//**********************INIT FUNCTIONS*************************************
 void initValues()
 {
   soil_moisture =0;
@@ -80,12 +80,86 @@ void initPeripherals()
   initPins();
 }
 
-//**********************INIT FUNCTIONS END**************************
+//**********************INIT FUNCTIONS END************************************
+
+//**********************BOOT TIME REQUEST THRESHOLDS**************************
+void updateThresholds()
+{
+  StaticJsonBuffer<200> jsonBuffer;
+  char payloadArray[200]; 
+  payload.toCharArray(payloadArray,200);
+  JsonObject& root = jsonBuffer.parseObject(payloadArray);
+  soil_moisture_min = root["moistureLowerThresholds"];
+  light_intensity_min = root["lightLowerThresholds"];
+  pH_min = root["phUpperThresholds"];
+  pH_max = root["phLowerThresholds"];
+  ec_min = root["tdsLowerThresholds"];
+  ec_max = root["tdsUpperThresholds"];
+  String responseThresholds = ""+String(pH_min)+","+String(pH_max)+","+String(ec_min)+","+String(ec_max)+","+String(soil_moisture_min)+","+String(light_intensity_min);
+  Serial.println("Thresholds Received :");
+  Serial.println(responseThresholds);
+}
+void requestInitThresholds()
+{
+    bool flag = false;
+    Serial.println("Fethching Thresholds from server");
+    Serial.println("Waiting for WiFi connection...");
+    while(flag == false)
+    {
+      Serial.println("Trying to connect...");
+      if((WiFiMulti.run() == WL_CONNECTED)) 
+      {
+        Serial.println("WiFi Connection Established!");
+        HTTPClient http;
+        Serial.print("[HTTP] begin...\n");
+
+        //configure server request
+        http.begin("172.20.10.1", 8080,"?&fn=getSensorDetails&sensorId=esp001&ph=0&tds=0&light=0&moisture=0&boot=true");
+        Serial.println("[HTTP] GET...");
+
+        //send HTTP header
+        int httpCode = http.GET();
+
+        //httpCode will be negative on error
+        if(httpCode >0)
+        {
+          Serial.print("[HTTP] GET... code ");Serial.println(httpCode);
+
+          if(httpCode == HTTP_CODE_OK)
+          {
+            payload = http.getString();
+            Serial.println("Received From Server:");
+            Serial.println(payload);
+                       
+            if(payload.equals(""))
+            {
+              flag=false;
+            }
+            else
+            {
+              flag = true;
+              break;
+            }
+          }
+        }
+        else
+        {
+          Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+        }
+        http.end();
+        
+      }
+      delay(10000);
+    }
+
+    updateThresholds();
+  
+}
 
 void setup() 
 {
   initPeripherals();
-  
+  requestInitThresholds();
 }
 
 void loop() 
