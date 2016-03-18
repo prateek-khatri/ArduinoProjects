@@ -30,30 +30,34 @@ void initValues()
   payload = "";
   
 }
+void initPins()
+{
+  digitalWrite(LIGHT_SENSOR_PIN,LOW);
+  digitalWrite(SOIL_MOISTURE_SENSOR_PIN,LOW);
+}
 //********************SCANNING SENSORS*******************************
 void scanEC()
 {
   ecValue = 50.23;
+  delay(1000);
 }
 void scanPH()
 {
   pHValue = 7.56;
+  delay(1000);
 }
 void scanLight()
 {
-  float a =(float) (analogRead(LIGHT_SENSOR_PIN)-255); 
-  if(a<0) a=0;
-  a = a*100;
-  a = a/(1023-255);
-  light_intensity = (int)a;
+  int a = analogRead(LIGHT_SENSOR_PIN);
+  light_intensity = map(a,0,1023,0,100);
+  delay(2000);
+  
 }
 void scanMoisture()
 {
-  float a =(float) (analogRead(SOIL_MOISTURE_SENSOR_PIN-20)); 
-  if(a<0) a=0;
-  a = a*100;
-  a = a/(1023-20);
-  soil_moisture = (int)a;
+  int a = analogRead(SOIL_MOISTURE_SENSOR_PIN);
+  soil_moisture = map(a,0,1023,0,100);
+  delay(1000);
 }
 //********************END SCANNING SECTION*******************************
 
@@ -76,6 +80,7 @@ void setup()
   ESPSerial.print("1");
 
   initValues();
+  initPins();
   Serial.println("Values Initiatiated, starting scan...");
   Serial.println();
   delay(5000);
@@ -105,6 +110,6 @@ void loop()
   Serial.print("Moisture Level(%): ");Serial.println(soil_moisture);
   Serial.println();
   sendValues(pHValue,ecValue,soil_moisture,light_intensity);
-  delay(10000);
+  delay(5000);
 }
 
