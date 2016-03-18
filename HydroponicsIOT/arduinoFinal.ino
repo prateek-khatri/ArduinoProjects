@@ -231,12 +231,14 @@ boolean checkPHLevels()
 {
   if(pHValue < pH_min)
   {
+    Serial.println("PH BASE PUMP : ON");
     digitalWrite(RELAY_PH_BASE_PUMP,HIGH);
     digitalWrite(RELAY_PH_ACID_PUMP,LOW);
     phActuator = true;
   }
   else if(pHValue > pH_max)
   {
+    Serial.println("PH ACID PUMP : ON");
     digitalWrite(RELAY_PH_ACID_PUMP,HIGH);
     digitalWrite(RELAY_PH_BASE_PUMP,LOW);
     phActuator = true;
@@ -255,12 +257,14 @@ boolean checkECLevels()
 {
   if(ecValue < ec_min)
   {
+    Serial.println("NUTRIENT PUMP : ON");
     digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
     digitalWrite(RELAY_EC_PUMP_TWO,LOW);
     ecActuator = true;
   }
   else if(ecValue > ec_max)
   {
+    Serial.println("WATER(Nutrient) PUMP: ON");
     digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
     digitalWrite(RELAY_EC_PUMP_TWO,LOW);
     ecActuator = true;
@@ -278,6 +282,7 @@ boolean checkMoistureLevels()
 {
   if(soil_moisture < soil_moisture_min)
   {
+    Serial.println("SPRINKLER : ON");
     digitalWrite(RELAY_WATER_PUMP,HIGH);
     waterActuator = true;
   }
@@ -294,6 +299,7 @@ boolean checkLightLevels()
 {
   if(light_intensity < light_intensity_min)
   {
+    Serial.prinlnt("LIGHT : ON");
     digitalWrite(RELAY_LIGHT_SWITCH,HIGH);
     lightActuator = true;
   }
@@ -348,9 +354,9 @@ int scanSoilMoisture()
 }
 int scanLightIntensity()
 {
-  float a =(float) analogRead(LIGHT_SENSOR_PIN); 
+  float a =(float) (analogRead(LIGHT_SENSOR_PIN)-255); 
+  a = a/(1023-255);
   a = a*100;
-  a = a/1023;
   return (int)a;
 }
 
@@ -385,6 +391,7 @@ void setup()
 }
 void loop() 
 {
+  readAllSensors();
   activateActuators();
   delay(10000);
   if(matchDeltas() == true)
