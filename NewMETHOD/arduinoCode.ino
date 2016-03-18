@@ -53,23 +53,36 @@ void scanEC()
 }
 void scanPH()
 {
-  byte highbyte,lowbyte,configRegister;
-  Wire.requestFrom(pHtoI2C,3,sizeof(byte)*3);
-  while(Wire.available())
+    pHValue = 7.0;
+//  byte highbyte,lowbyte,configRegister;
+//  Wire.requestFrom(pHtoI2C,3,sizeof(byte)*3);
+//  while(Wire.available())
+//  {
+//    highbyte = Wire.read();
+//    lowbyte = Wire.read();
+//    configRegister = Wire.read();
+//  }
+//  data = highbyte *256;
+//  data += lowbyte;
+//  voltage = data*2.048;
+//  voltage = voltage/32768;
+//  pHValue = 7.0;
+//  float constFactor;
+//  constFactor = voltage - (0.5);
+//  constFactor *=8;
+//  pHValue -=constFactor;
+  int addMinus = random(0,1);
+  float factor = random(0,13);
+  factor = factor/100;
+  if(addMinus == 0)
   {
-    highbyte = Wire.read();
-    lowbyte = Wire.read();
-    configRegister = Wire.read();
+    pHValue += factor;
   }
-  data = highbyte *256;
-  data += lowbyte;
-  voltage = data*2.048;
-  voltage = voltage/32768;
-  pHValue = 7.0;
-  float constFactor;
-  constFactor = voltage - (0.5);
-  constFactor *=8;
-  pHValue -=constFactor;
+  else
+  {
+    pHValue -= factor;
+  }
+  
   delay(1000);
 }
 void scanLight()
