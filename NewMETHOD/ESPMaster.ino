@@ -83,7 +83,7 @@ void initPeripherals()
 //**********************INIT FUNCTIONS END************************************
 
 //**********************BOOT TIME REQUEST THRESHOLDS**************************
-void updateThresholds()
+void updateThresholds() //THIS FUNCTION CAN BE CALLED WHEN PAYLOAD STRING HAS JSON OBJECT WITH THRESHOLDS
 {
   StaticJsonBuffer<200> jsonBuffer;
   char payloadArray[200]; 
@@ -155,7 +155,7 @@ void requestInitThresholds()
     updateThresholds();
   
 }
-
+//**********************BOOT TIME REQUEST THRESHOLDS END**************************
 void setup() 
 {
   initPeripherals();
