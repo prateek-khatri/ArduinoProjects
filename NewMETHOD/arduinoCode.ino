@@ -65,7 +65,9 @@ void scanMoisture()
 void sendValues(float ph,float ec,int moisture, int light)
 {
   Serial.println("Sending Values to ESP8266...");
-  ESPSerial.print("6,"+String(ph)+","+String(ec)+","+String(moisture)+","+String(light));
+  payload = "6,"+String(ph)+","+String(ec)+","+String(moisture)+","+String(light);
+  ESPSerial.print(payload);
+  Serial.println(payload);
   Serial.println("Done!");
   Serial.println();
 }
