@@ -112,6 +112,6 @@ void loop()
   Serial.print("Moisture Level(%): ");Serial.println(soil_moisture);
   Serial.println();
   sendValues(pHValue,ecValue,soil_moisture,light_intensity);
-  delay(5000);
+  delay(15000);
 }
 
