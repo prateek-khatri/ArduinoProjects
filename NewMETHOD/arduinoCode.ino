@@ -72,7 +72,7 @@ void scanPH()
 //  constFactor *=8;
 //  pHValue -=constFactor;
   int addMinus = random(0,1);
-  float factor = random(0,13);
+  float factor = random(0,23);
   factor = factor/100;
   if(addMinus == 0)
   {
