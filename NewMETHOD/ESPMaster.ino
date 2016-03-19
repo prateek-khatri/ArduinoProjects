@@ -11,11 +11,11 @@ ESP8266WiFiMulti WiFiMulti;
 #define SERIAL_TX 6
 //RELAY PINS
 #define RELAY_PH_ACID_PUMP 0
-#define RELAY_PH_BASE_PUMP 2
+#define RELAY_PH_BASE_PUMP 16
 #define RELAY_EC_PUMP_ONE 4
 #define RELAY_EC_PUMP_TWO 12
 #define RELAY_WATER_PUMP 13
-#define RELAY_LIGHT_SWITCH 15
+#define RELAY_LIGHT_SWITCH 10
 
 //SENSOR VALUES
 int soil_moisture;
@@ -85,6 +85,7 @@ void initPeripherals()
   Serial.println("Initializing Pins for Relay");
   initPins();
   Serial.println("Values/PINS Initialized!");
+   WiFiMulti.addAP("iPhone 6","parthconnect");
 }
 
 //**********************INIT FUNCTIONS END************************************
@@ -106,8 +107,8 @@ boolean updateThresholds() //THIS FUNCTION CAN BE CALLED WHEN PAYLOAD STRING HAS
   }
   soil_moisture_min = root["moistureLowerThresholds"];
   light_intensity_min = root["lightLowerThresholds"];
-  pH_min = root["phUpperThresholds"];
-  pH_max = root["phLowerThresholds"];
+  pH_min = root["phLowerThresholds"];
+  pH_max = root["phUpperThresholds"];
   ec_min = root["tdsLowerThresholds"];
   ec_max = root["tdsUpperThresholds"];
   String responseThresholds = ""+String(pH_min)+","+String(pH_max)+","+String(ec_min)+","+String(ec_max)+","+String(soil_moisture_min)+","+String(light_intensity_min);
@@ -159,7 +160,7 @@ boolean requestInitThresholds()
        http.end();
        
      }
-     delay(2000); 
+     delay(10000); 
     }
    flag = updateThresholds();
    return flag;
@@ -343,6 +344,9 @@ void activate_ph_pumps()
     Serial.println("Starting Base Pump for PH!");
     digitalWrite(RELAY_PH_BASE_PUMP,HIGH);
     digitalWrite(RELAY_PH_ACID_PUMP,LOW);
+    delay(1000);
+    digitalWrite(RELAY_PH_BASE_PUMP,LOW);
+
   }
   else if(pHValue > pH_max)
   {
@@ -350,6 +354,9 @@ void activate_ph_pumps()
     Serial.println("Starting Acid Pump for PH!");
     digitalWrite(RELAY_PH_BASE_PUMP,LOW);
     digitalWrite(RELAY_PH_ACID_PUMP,HIGH);
+    delay(1000);
+    digitalWrite(RELAY_PH_ACID_PUMP,LOW);
+
   }
   phActuator = true;
 }
@@ -369,6 +376,9 @@ void activate_ec_pumps()
     Serial.println("Starting Nutrient Pump for EC!");
     digitalWrite(RELAY_EC_PUMP_ONE,HIGH);
     digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+    delay(1000);
+    digitalWrite(RELAY_EC_PUMP_ONE,LOW);
+
   }
   else if(ecValue > ec_max)
   {
@@ -376,6 +386,9 @@ void activate_ec_pumps()
     Serial.println("Starting Water Pump for EC!");
     digitalWrite(RELAY_EC_PUMP_ONE,LOW);
     digitalWrite(RELAY_EC_PUMP_TWO,HIGH);
+    delay(1000);
+    digitalWrite(RELAY_EC_PUMP_TWO,LOW);
+
   }
   ecActuator = true;
 }
@@ -383,7 +396,7 @@ void deactivate_ec_pumps()
 {
     Serial.println("Deactivate EC Pumps!");
     digitalWrite(RELAY_EC_PUMP_ONE,LOW);
-    digitalWrite(RELAY_EC_PUMP_TWO,HIGH);
+    digitalWrite(RELAY_EC_PUMP_TWO,LOW);
     ecActuator = false;
 }
 
@@ -404,6 +417,9 @@ void activate_water_pump()
 {
   Serial.println("Turning Water Pump On!");
   digitalWrite(RELAY_WATER_PUMP,HIGH);
+  delay(1000);
+  digitalWrite(RELAY_WATER_PUMP,LOW);
+
   waterActuator = true;
 }
 void deactivate_water_pump()
@@ -554,6 +570,8 @@ void setup()
 {
   initPeripherals();
   while(!requestInitThresholds());
+  WiFiMulti.addAP("iPhone 6","parthconnect");
+
   //don't go forwad until valid thresholds are received.  
 }
 
