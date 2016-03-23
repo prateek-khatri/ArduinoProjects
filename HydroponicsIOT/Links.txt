@@ -1,2 +1,0 @@
-For EC Conductivity Project: https://github.com/cyberplantru/ECminiV30SampleCode
-For Ph : https://github.com/cyberplantru/pH-to-I2C-v20-sample-code
